@@ -10,7 +10,7 @@ import (
 type State struct {
    file    *os.File
    mapping []byte
-   length  int
+   length  int64
    user    interface{}
 }
 
@@ -23,18 +23,19 @@ func NewState(fname string, user interface{}, maxSize int) (*State, error) {
       return nil, err
    }
 
-   stat, err := s.file.Stat()
-   if err != nil {
-      return nil, err
-   }
-
    s.mapping, err = unix.Mmap(int(s.file.Fd()), 0, maxSize, unix.PROT_READ|unix.PROT_WRITE, unix.MAP_SHARED)
    if err != nil {
       return nil, err
    }
 
-   if stat.Size() > 0 {
-      err = yaml.Unmarshal(s.mapping, user)
+   stat, err := s.file.Stat()
+   if err != nil {
+      return nil, err
+   }
+
+   s.length = stat.Size()
+   if s.length > 0 {
+      err = yaml.Unmarshal(s.mapping[:s.length], user)
       if err != nil {
          return nil, err
       }
@@ -49,13 +50,15 @@ func (s *State) Capture() error {
       return err
    }
 
-   if len(out) != s.length {
-      err = s.file.Truncate(int64(len(out)))
+   length := int64(len(out))
+
+   if length != s.length {
+      err = s.file.Truncate(length)
       if err != nil {
          return err
       }
 
-      s.length = len(out)
+      s.length = length
    }
 
    copy(s.mapping, out)
