@@ -64,7 +64,12 @@ func (s *State) Capture() error {
 }
 
 func (s *State) Close() error {
-   err := s.file.Close()
+   err := unix.Munmap(s.mapping)
+   if err != nil {
+      return err
+   }
+
+   err = s.file.Close()
    if err != nil {
       return err
    }
