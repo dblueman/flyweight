@@ -11,10 +11,10 @@ type State struct {
    file    *os.File
    mapping []byte
    length  int
-   user interface{}
+   user    interface{}
 }
 
-func NewState(fname string, user interface{}) (*State, error) {
+func NewState(fname string, user interface{}, maxSize int) (*State, error) {
    s := State{user: user}
 
    var err error
@@ -28,7 +28,7 @@ func NewState(fname string, user interface{}) (*State, error) {
       return nil, err
    }
 
-   s.mapping, err = unix.Mmap(int(s.file.Fd()), 0, 8*1024*1024, unix.PROT_READ|unix.PROT_WRITE, unix.MAP_SHARED)
+   s.mapping, err = unix.Mmap(int(s.file.Fd()), 0, maxSize, unix.PROT_READ|unix.PROT_WRITE, unix.MAP_SHARED)
    if err != nil {
       return nil, err
    }
