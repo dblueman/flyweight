@@ -48,3 +48,21 @@ func Test(t *testing.T) {
       t.Fatal("counter disagree")
    }
 }
+
+func Benchmark(b *testing.B) {
+   user := User{}
+
+   s, err := NewState(filename, &user, 8*1024*1024)
+   if err != nil {
+      b.Fatal("NewState:", err)
+   }
+
+   b.ResetTimer()
+
+   for i := 0; i < b.N; i++ {
+      err = s.Capture()
+      if err != nil {
+         b.Error(err)
+      }
+   }
+}
