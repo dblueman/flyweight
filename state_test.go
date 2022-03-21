@@ -23,13 +23,16 @@ func Test(t *testing.T) {
       t.Fatal("NewState:", err)
    }
 
-   user.Counter++
-   localCounter := user.Counter
+   for i := 0; i < 100000; i++ {
+      user.Counter = i
 
-   err = s.Capture()
-   if err != nil {
-      t.Fatal("Capture:", err)
+      err = s.Capture()
+      if err != nil {
+         t.Fatal("Capture:", err)
+      }
    }
+
+   localCounter := user.Counter
 
    err = s.Close()
    if err != nil {
